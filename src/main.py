@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Migrate playlists from Deezer to Spotify, matching on ISRC where possible.
 
@@ -8,65 +7,73 @@ See README.md for setup.
 import argparse
 import sys
 import typing
+
 from dotenv import load_dotenv
 from spotipy.client import Spotify
 
-load_dotenv()
-
-from src.dtypes import Export
 from src.deezer import deezer_export_playlist
-from src.spotify import spotify_client, spotify_delete_liked_songs, spotify_import_playlist
+from src.dtypes import Export
+from src.spotify import (
+    spotify_client,
+    spotify_delete_liked_songs,
+    spotify_import_playlist,
+)
 
-def setup_args():
+
+def setup_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="phase", required=True)
 
-    def add_playlist_args(p):
-        p.add_argument("playlist_ids", nargs="+")
-        p.add_argument("--refresh", action="store_true",
-                    help="Ignore cache and re-fetch from Deezer")
-        p.add_argument("--dry-run", action="store_true",
-                    help="Match and report, but don't create the playlist")
-
     for name in ("export", "import", "run"):
-        add_playlist_args(sub.add_parser(name))
+        p = sub.add_parser(name)
+        p.add_argument("playlist_ids", nargs="+")
+        # Both flags always exist on the namespace, but each is only offered on
+        # the phases it actually affects.
+        p.set_defaults(refresh=False, dry_run=False)
+        if name in ("export", "run"):
+            p.add_argument("--refresh", action="store_true",
+                           help="Ignore cache and re-fetch from Deezer")
+        if name in ("import", "run"):
+            p.add_argument("--dry-run", action="store_true",
+                           help="Match and report, but don't create the playlist")
 
     sub.add_parser("test", help="Test Spotify authorization")
     sub.add_parser("clear_liked", help="Clear all tracks from your Spotify \"Liked Songs\" playlist")
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
+
+
+def run_test(sp: Spotify) -> int:
+    try:
+        results = sp.current_user_playlists()
+        print("Authorized n stuff. playlists:")
+        for item in (results or {}).get("items", []):
+            print(f"- {item['name']}")
+    except Exception as exc:
+        print(f"Authorization failed: {exc}", file=sys.stderr)
+        return 1
+    return 0
+
 
 def main() -> int:
+    load_dotenv()
     args = setup_args()
 
-    use_spotify = args.phase not in ("export")
-
-    sp = user_id = market = None
-    if use_spotify:
+    spotify: tuple[Spotify, str] | None = None
+    if args.phase in ("import", "run", "clear_liked", "test"):
         sp, user_id, market = spotify_client()
         print(f"Authenticated as {user_id} (market {market})")
-        if sp is None or user_id is None or market is None:
-            raise RuntimeError("Spotify client could not be initialized")
+        spotify = (sp, market)
 
-    sp = typing.cast(Spotify, sp)
-    user_id = typing.cast(str, user_id)
-    market = typing.cast(str, market)
+    if args.phase == "test":
+        sp, market = typing.cast(tuple[Spotify, str], spotify)
+        return run_test(sp)
 
-    if args.phase in ("test"):
-        try:
-            results = sp.current_user_playlists()
-            print("Authorized n stuff. playlists:")
-            for item in results['items']:
-                print(f"- {item['name']}")
-        except Exception as e:
-            print(f"Authorization failed: {e}")
-
-        return 0
-
-    if args.phase in ("clear_liked"):
+    if args.phase == "clear_liked":
+        sp, market = typing.cast(tuple[Spotify, str], spotify)
         spotify_delete_liked_songs(sp)
         return 0
 
+    failed = False
     for playlist_id in args.playlist_ids:
         print(f"\n=== {playlist_id} ===")
         try:
@@ -76,22 +83,18 @@ def main() -> int:
                 export = Export.load(playlist_id)
                 if export is None:
                     print("No cached export, run 'export' first.", file=sys.stderr)
+                    failed = True
                     continue
 
             if args.phase in ("import", "run"):
-                spotify_import_playlist(
-                    sp, 
-                    market, 
-                    export, 
-                    dry_run=args.dry_run
-                )
-            else:
-                print(f"Nothing to do for {playlist_id}.")
+                sp, market = typing.cast(tuple[Spotify, str], spotify)
+                spotify_import_playlist(sp, market, export, dry_run=args.dry_run)
 
         except Exception as exc:
             print(f"Failed: {exc}", file=sys.stderr)
+            failed = True
 
-    return 0
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":
