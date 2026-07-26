@@ -27,9 +27,9 @@ import typing
 from dotenv import load_dotenv
 from spotipy.client import Spotify
 
-from src.deezer import deezer_export_playlist
-from src.dtypes import Export
-from src.spotify import (
+from deezer_to_spotify.deezer import deezer_export_playlist
+from deezer_to_spotify.dtypes import Export
+from deezer_to_spotify.spotify import (
     spotify_client,
     spotify_delete_liked_songs,
     spotify_import_playlist,
@@ -64,7 +64,7 @@ def run_test(sp: Spotify) -> int:
         print("Authorized n stuff. playlists:")
         for item in (results or {}).get("items", []):
             print(f"- {item['name']}")
-    except Exception as exc:
+    except Exception as exc: # ruff: ignore[BLE001]
         print(f"Authorization failed: {exc}", file=sys.stderr)
         return 1
     return 0
@@ -106,7 +106,7 @@ def main() -> int:
                 sp, market = typing.cast(tuple[Spotify, str], spotify)
                 spotify_import_playlist(sp, market, export, dry_run=args.dry_run)
 
-        except Exception as exc:
+        except Exception as exc: # ruff: ignore[BLE001]
             print(f"Failed: {exc}", file=sys.stderr)
             failed = True
 

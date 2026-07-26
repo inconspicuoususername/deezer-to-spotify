@@ -1,7 +1,7 @@
 import contextlib
 import json
 
-from src.dtypes import Export, Track
+from deezer_to_spotify.dtypes import Export, Track
 
 
 def track(deezer_id=1, **kw):
@@ -48,7 +48,7 @@ class TestAtomicSave:
         Export(playlist_id="42", title="Good", tracks=[track()]).save()
 
         e = Export(playlist_id="42", title="Bad", tracks=[track()])
-        monkeypatch.setattr("src.dtypes.os.replace", lambda *a: (_ for _ in ()).throw(OSError("boom")))
+        monkeypatch.setattr("deezer_to_spotify.dtypes.os.replace", lambda *a: (_ for _ in ()).throw(OSError("boom")))
         with contextlib.suppress(OSError):
             e.save()
 

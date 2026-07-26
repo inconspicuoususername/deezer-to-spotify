@@ -19,6 +19,13 @@ dev = [
     "ruff>=0.14.0",
 ]
 
+[project.scripts]
+dts = "deezer_to_spotify.main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [tool.ruff]
 line-length = 120
 
@@ -27,12 +34,6 @@ select = ["E", "F", "I", "UP", "B", "SIM", "PIE", "BLE"]
 # The SCOPES string and a few prompt strings read worse wrapped than long.
 ignore = ["E501"]
 
-[tool.ruff.lint.per-file-ignores]
-# Both blind handlers are deliberate: run_test reports auth failure as a message
-# rather than a traceback, and the per-playlist handler keeps one bad playlist
-# from killing a multi-playlist run.
-"src/main.py" = ["BLE001"]
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["."]  # so tests can `import src.*` without installing the project
+pythonpath = ["."]  # so `from tests.conftest import ...` resolves from the repo root

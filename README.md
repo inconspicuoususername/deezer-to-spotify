@@ -40,20 +40,20 @@ cp .env.example .env # then fill in the values from your Spotify app
 
 ```sh
 # Check that authorization works (opens a browser on first run)
-uv run python -m src.main test
+uv run dts test
 
 # Phase 1: Deezer -> cache/<id>.json (one request per track for ISRC)
-uv run python -m src.main export 1234567890
+uv run dts export 1234567890
 
 # Phase 2: match and create. --dry-run reports without writing.
-uv run python -m src.main import 1234567890 --dry-run
-uv run python -m src.main import 1234567890
+uv run dts import 1234567890 --dry-run
+uv run dts import 1234567890
 
 # Or both at once
-uv run python -m src.main run 1234567890 9876543210
+uv run dts run 1234567890 9876543210
 
 # If you wanna wipe your liked songs:
-uv run python -m src.main clear_liked
+uv run dts clear_liked
 ```
 
 State lives in `cache/`. The Deezer fetch checkpoints after every page, the ISRC and Spotify lookups every 50 tracks, and all of them skip entries that are already resolved, so an interrupted run resumes instead of starting over. `--refresh` forces a re-fetch from Deezer.
@@ -70,7 +70,7 @@ That ordering works out for Deezer's *Favorite tracks* specifically: the API han
 
 ```sh
 uv run pytest
-uv run ruff check src tests
+uv run ruff check deezer_to_spotify tests
 ```
 
 ## License

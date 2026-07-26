@@ -1,12 +1,12 @@
 import pytest
 
-import src.dtypes
+import deezer_to_spotify.dtypes
 
 
 @pytest.fixture
 def cache_dir(tmp_path, monkeypatch):
     """Point Export's cache at a tmp dir so tests never touch the real cache/."""
-    monkeypatch.setattr(src.dtypes, "CACHE_DIR", tmp_path)
+    monkeypatch.setattr(deezer_to_spotify.dtypes, "CACHE_DIR", tmp_path)
     return tmp_path
 
 

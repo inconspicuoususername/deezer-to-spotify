@@ -1,7 +1,9 @@
+# type: ignore[reportAssignmentType]
+
 import pytest
 
-from src.dtypes import Track
-from src.spotify import normalize_str, search_field, spotify_resolve_track
+from deezer_to_spotify.dtypes import Track
+from deezer_to_spotify.spotify import normalize_str, search_field, spotify_resolve_track
 from tests.conftest import FakeSpotify, spotify_item
 
 

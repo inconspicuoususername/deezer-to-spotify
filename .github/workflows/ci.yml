@@ -20,7 +20,7 @@ jobs:
         run: uv sync --locked
 
       - name: Lint
-        run: uv run ruff check src tests
+        run: uv run ruff check deezer_to_spotify tests
 
       - name: Test
         run: uv run pytest -q

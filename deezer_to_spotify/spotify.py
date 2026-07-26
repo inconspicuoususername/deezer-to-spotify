@@ -6,7 +6,7 @@ import spotipy
 from tqdm import tqdm
 from tqdm.contrib import tenumerate
 
-from src.constants import (
+from deezer_to_spotify.constants import (
     CACHE_DIR,
     CHECKPOINT_EVERY,
     SCOPES,
@@ -15,7 +15,7 @@ from src.constants import (
     SPOTIFY_LIKED_SONGS_STRIDE,
     SPOTIFY_PLAYLIST_STRIDE,
 )
-from src.dtypes import Export, Track
+from deezer_to_spotify.dtypes import Export, Track
 
 
 def require[T](value: T | None, what: str) -> T:

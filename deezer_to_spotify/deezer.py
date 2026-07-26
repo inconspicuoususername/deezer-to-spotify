@@ -5,8 +5,8 @@ import requests
 from tqdm import tqdm
 from tqdm.contrib import tenumerate
 
-from src.constants import CHECKPOINT_EVERY, DEEZER_API, DEEZER_DELAY
-from src.dtypes import Export, Track
+from deezer_to_spotify.constants import CHECKPOINT_EVERY, DEEZER_API, DEEZER_DELAY
+from deezer_to_spotify.dtypes import Export, Track
 
 
 def deezer_get(path: str) -> dict:

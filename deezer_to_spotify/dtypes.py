@@ -4,7 +4,7 @@ from dataclasses import asdict, dataclass, field, fields
 from pathlib import Path
 from typing import Literal
 
-from src.constants import CACHE_DIR
+from deezer_to_spotify.constants import CACHE_DIR
 
 
 @dataclass
