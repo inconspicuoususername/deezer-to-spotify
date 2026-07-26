@@ -4,9 +4,35 @@ version = "0.1.0"
 description = "Playlist migration thing"
 readme = "README.md"
 requires-python = ">=3.13"
+license = "AGPL-3.0-or-later"
+license-files = ["LICENSE"]
 dependencies = [
     "python-dotenv>=1.2.2",
     "requests>=2.34.2",
     "spotipy>=2.26.0",
     "tqdm>=4.69.1",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+    "ruff>=0.14.0",
+]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "PIE", "BLE"]
+# The SCOPES string and a few prompt strings read worse wrapped than long.
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# Both blind handlers are deliberate: run_test reports auth failure as a message
+# rather than a traceback, and the per-playlist handler keeps one bad playlist
+# from killing a multi-playlist run.
+"src/main.py" = ["BLE001"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]  # so tests can `import src.*` without installing the project

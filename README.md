@@ -31,31 +31,52 @@ Development mode is fine, since the five-user cap is irrelevant for personal use
 
 ## Usage
 
-Ensure that you have all the relevant values in the `.env.example` in your own `.env`
+Requires Python 3.13+ and [uv](https://docs.astral.sh/uv/).
 
 ```sh
-# Phase 1: Deezer -> cache/<id>.json (one request per track for ISRC)
-python3 -m src.main export 1234567890
-
-# Phase 2: match and create. --dry-run reports without writing.
-python3 -m src.main import 1234567890 --dry-run
-python3 -m src.main import 1234567890
-
-# Or both at once
-python3 -m src.main run 1234567890 9876543210
-
-# If you wanna wipe your liked songs:
-python3 -m src.main clear_liked
+uv sync
+cp .env.example .env # then fill in the values from your Spotify app
 ```
 
-State lives in `cache/`. Both phases checkpoint every 50 tracks and skip already-resolved entries, so an interrupted run resumes instead of starting over. `--refresh` forces a re-fetch from Deezer.
+```sh
+# Check that authorization works (opens a browser on first run)
+uv run python -m src.main test
+
+# Phase 1: Deezer -> cache/<id>.json (one request per track for ISRC)
+uv run python -m src.main export 1234567890
+
+# Phase 2: match and create. --dry-run reports without writing.
+uv run python -m src.main import 1234567890 --dry-run
+uv run python -m src.main import 1234567890
+
+# Or both at once
+uv run python -m src.main run 1234567890 9876543210
+
+# If you wanna wipe your liked songs:
+uv run python -m src.main clear_liked
+```
+
+State lives in `cache/`. The Deezer fetch checkpoints after every page, the ISRC and Spotify lookups every 50 tracks, and all of them skip entries that are already resolved, so an interrupted run resumes instead of starting over. `--refresh` forces a re-fetch from Deezer.
 
 ## Output
 
 `cache/<id>-report.md` outputs fuzzy matches and songs with no Spotify equivalent. This is usually because of regional licensing gaps.
 
-As for the playlists themselves, order is preserved. This poses a slight issue with Liked Songs, since Spotify's API used to have a route that allowed you to impose a custom order or inserted Liked Songs, but that has since been deprecated. So you'll have to wait a second per song when importing into Liked Songs.
+As for the playlists themselves, order is preserved. This poses a slight issue with Liked Songs, since Spotify's API used to have a route that allowed you to impose a custom order on inserted Liked Songs, but that has since been deprecated. So you'll have to wait a second per song when importing into Liked Songs.
+
+That ordering works out for Deezer's *Favorite tracks* specifically: the API hands them back oldest-first, the opposite of what the web player shows, and Liked Songs sorts newest-added to the top. A curated playlist has no such reversal, so send those to a real Spotify playlist rather than Liked Songs, or they'll land upside down.
+
+## Development
+
+```sh
+uv run pytest
+uv run ruff check src tests
+```
+
+## License
+
+[AGPL-3.0-or-later](LICENSE).
 
 ## Note
 
-This was done with the assistence of Claude. If you want to do this without the use of AI, be my guest. I didn't have the time to write everything manually. 
+This was done with the assistance of Claude. If you want to do this without the use of AI, be my guest. I didn't have the time to write everything manually. 
